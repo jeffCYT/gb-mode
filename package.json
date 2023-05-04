@@ -12,6 +12,26 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+		"languages": [
+			{
+				"id": "guabao",
+				"extensions": [
+					".gcl"
+				],
+				"aliases": [
+					"Guabao"
+				],
+				"configuration": "./language-configuration.json",
+				"filenames": []
+			}
+		],
+		"grammars": [
+			{
+				"language": "guabao",
+				"scopeName": "source.gcl",
+				"path": "./syntaxes/guabao.tmGrammar.json"
+			}
+		],    
     "commands": [
       {
         "command": "gb-mode.helloWorld",
