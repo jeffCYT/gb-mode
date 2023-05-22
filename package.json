@@ -12,26 +12,26 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-		"languages": [
-			{
-				"id": "guabao",
-				"extensions": [
-					".gcl"
-				],
-				"aliases": [
-					"Guabao"
-				],
-				"configuration": "./language-configuration.json",
-				"filenames": []
-			}
-		],
-		"grammars": [
-			{
-				"language": "guabao",
-				"scopeName": "source.gcl",
-				"path": "./syntaxes/guabao.tmGrammar.json"
-			}
-		],    
+    "languages": [
+      {
+        "id": "guabao",
+        "extensions": [
+          ".gcl"
+        ],
+        "aliases": [
+          "Guabao"
+        ],
+        "configuration": "./language-configuration.json",
+        "filenames": []
+      }
+    ],
+    "grammars": [
+      {
+        "language": "guabao",
+        "scopeName": "source.gcl",
+        "path": "./syntaxes/guabao.tmGrammar.json"
+      }
+    ],
     "commands": [
       {
         "command": "gb-mode.helloWorld",
@@ -48,16 +48,21 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.78.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/vscode": "^1.78.0",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.0",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
-    "typescript": "^5.0.4",
-    "@vscode/test-electron": "^2.3.0"
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "fp-ts": "^2.15.0",
+    "vscode-languageclient": "^7.0.0"
   }
 }
