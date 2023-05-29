@@ -1,13 +1,115 @@
 import * as LC from 'vscode-languageclient/node';
 import * as vscode from 'vscode';
+import { pipe } from 'fp-ts/lib/function'
 import {Either} from 'fp-ts/Either';
 import * as E from 'fp-ts/Either';
 import {Chan} from './util/chan';
+import {pending} from './util/promise';
+import * as Prom from './util/promise';
 
-let PATH_EXISTS = true;
 let GCLPATH = "/Users/geoffrsu/Library/Application Support/Code/User/globalStorage/scmlab.guabao/v0.3.11-macos/gcl";
 
-export class Connection {
+
+
+
+//not decided yet
+type Request = string;
+
+//not decided yet
+type Response = string;
+
+// connection error
+export type CError = CError.FromLSP;
+namespace CError{
+    export class FromLSP{
+        error:Error;
+        constructor(error:Error){
+            this.error = error;
+        }
+    }
+}
+
+type LSPConnectionResult = Either<CError,null>;
+
+
+type State = State.Disconnected | State.Connecting | State.Connected;
+namespace State{
+    export class Disconnected{}
+
+    export class Connecting{
+        readonly prom: Promise<LSPConnectionResult>;
+        constructor(prom: Promise<LSPConnectionResult>){
+            this.prom = prom;
+        }
+    }
+
+    export class Connected{
+        readonly client:LC.LanguageClient;
+        readonly subscriptions: vscode.Disposable[];
+        constructor
+            ( client:LC.LanguageClient
+            , subscriptions: vscode.Disposable[])
+        {
+            this.client = client;
+            this.subscriptions = subscriptions;
+        }
+    }
+
+    export const match = 
+        <A>
+        ( onDisconnected: () => A
+        , onConnecting: (prom:Promise<LSPConnectionResult>) => A
+        , onConnected: (client:LC.LanguageClient, subs:vscode.Disposable[]) => A
+        ) => (st:State)
+        : A =>
+        st instanceof Connected? onConnected(st.client,st.subscriptions):
+          st instanceof Connecting? onConnecting(st.prom): 
+            onDisconnected();
+}
+
+let connectionState: State = new State.Disconnected();
+let errorChan = new Chan<Error>();
+let notificationChan = new Chan<Either<CError,Response>>();
+
+
+export const start = ():Promise<LSPConnectionResult> =>
+    State.match
+        ( //onDisconnected
+          ()=>{
+            let [promise, resolve] = pending<LSPConnectionResult>();
+            connectionState = new State.Connecting(promise);
+            // let result:Promise<Either<CError, LSPConnection>> = 
+            return pipe( makeLSPConnection()
+                , Prom.mapLeft((e)=>new CError.FromLSP(e))
+                ).then((connResult)=>{
+                    //change state and stuff
+                    return E.right(null);
+                });
+          }
+
+          //onConnecting
+        , (prom)=>prom
+
+        //onConnected
+        , (_client,_subs)=>Promise.resolve(E.right(null))
+        )(connectionState);
+
+export const stop = ():Promise<null> =>{
+
+}
+export const sendRequest = (req:Request):Promise<Either<CError,Response>> =>{
+
+}
+export const onNotification = 
+    (callback:(_:Either<CError,Response>)=>void): vscode.Disposable =>{
+
+}
+export const onError = 
+    (callback:(_:CError)=>void): vscode.Disposable =>{
+
+}
+
+class LSPConnection {
   client: LC.LanguageClient;
   id: string;
   name: string;
@@ -56,11 +158,12 @@ export class Connection {
     this.notificationChan.destroy();
     this.subscriptions.forEach((x)=>x.dispose());
   }
+
 }
 
 
-export const startConnection = ():Promise<Connection>=>{
-    let errorChan: Chan<Error> = new Chan();
+export const makeLSPConnection = ():Promise<Either<Error,LSPConnection>> =>{
+    let errorChan = new Chan<Error>();
     let id:string = "guabao";
     let name: string = "Guabao Language Server";
     let serverOptions: LC.Executable = {
@@ -82,9 +185,9 @@ export const startConnection = ():Promise<Connection>=>{
         },
         //initializationOptions:null
     };
-    let languageClient = new LC.LanguageClient(id, name, serverOptions, clientOption)
+    let languageClient = new LC.LanguageClient(id, name, serverOptions, clientOption);
 
-    let conn:Connection = new Connection(
+    let conn:LSPConnection = new LSPConnection(
         languageClient,
         id,
         name,
@@ -95,11 +198,15 @@ export const startConnection = ():Promise<Connection>=>{
     return Promise.race([ conn.client.onReady()
                         , conn.errorChan.once()
                         ])
-                .then(()=>{
-                // Start listening for incoming notifications
-                let disp = conn.client.onNotification(conn.id, json => 
-                    conn.notificationChan.emit(json));
-                conn.subscriptions.push(disp);
-                return conn;
+                .then((res)=>{
+                    if(typeof res === 'undefined'){
+                        // Start listening for incoming notifications
+                        let disp = conn.client.onNotification(conn.id, json => 
+                            conn.notificationChan.emit(json));
+                        conn.subscriptions.push(disp);
+                        return E.right(conn);
+                    }else{
+                        return E.left(res);
+                    }
                 });
 }
