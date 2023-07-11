@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:guabao"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "languages": [
