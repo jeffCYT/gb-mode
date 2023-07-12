@@ -3,8 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as net from 'net';
-
-// var connection$Guabao = require('./connection.ts');
+import * as connection$guabao from './connection';
 
 import {
 	LanguageClient,
@@ -19,6 +18,10 @@ import {Trace} from 'vscode-jsonrpc';
 let client: LanguageClient;
 
 
+function isGCL$1(editor : any) {
+	return /\.gcl$/i.test(editor.document.fileName);
+  }
+   
 export function activate(context: vscode.ExtensionContext) {
 	// TODO [MISC] Helper functions within activate()
 	var subsribe = function (x : any) { context.subscriptions.push(x); };
@@ -31,6 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
 	// But the previouslyActivatedState feels like something should belong to globalStorage
 
 	// TODO [STAGE] subscriptions [onNotification / onError / onOpenEditor / onCloseEditor]
+	// vscode.window.onDidChangeActiveTextEditor;
+
+
 	// TODO [STAGE] Connect
     let connectionInfo = {
         port: 3000
@@ -60,10 +66,11 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.showInformationMessage(client.state.toString());
 
 	// TOOD [JEFF][DEBUG] find out .ts linkage
-	// var res = connection$Guabao.start();
-	// console.log(res);
+	var res = connection$guabao.start();
+	console.log(res);
 
 	// TODO [STAGE] subscriptions [onActivateExtension (VIEW) / onDeactivateExtension]
+	var visibleCount = vscode.window.visibleTextEditors.filter(isGCL$1).length; // This statement is merely transcribed for fun
 	const panel = vscode.window.createWebviewPanel("RHS", "GauBao RHS Panel", vscode.ViewColumn.Two);
 
 	// TODO [STAGE] subscriptions [onChangeCursorPosition]
