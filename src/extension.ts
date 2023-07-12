@@ -18,7 +18,7 @@ import {Trace} from 'vscode-jsonrpc';
 let client: LanguageClient;
 
 
-function isGCL$1(editor : any) {
+function isGCL$1(editor : vscode.TextEditor) {
 	return /\.gcl$/i.test(editor.document.fileName);
   }
    
@@ -92,6 +92,11 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+
+
+	// [JEFF] Testing if the extension configuration can be retreived correctly
+	let config = vscode.workspace.getConfiguration();
+	console.log(config.get('guabao.solver'));
 }
 
 export function deactivate() {
