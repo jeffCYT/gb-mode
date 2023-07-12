@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as net from 'net';
 
+// var connection$Guabao = require('./connection.ts');
+
 import {
 	LanguageClient,
 	LanguageClientOptions,
@@ -17,10 +19,19 @@ import {Trace} from 'vscode-jsonrpc';
 let client: LanguageClient;
 
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // The server is a started as a separate app and listens on port 5007
+	// TODO [MISC] Helper functions within activate()
+	var subsribe = function (x : any) { context.subscriptions.push(x); };
+	var regCommand = function ( title : string, func : any ) {
+		subsribe( vscode.commands.registerCommand(title, func) );
+	};
+
+	// TODO [STAGE] GlobalStorage
+	// [JEF] not sure how much global stroage is being used
+	// But the previouslyActivatedState feels like something should belong to globalStorage
+
+	// TODO [STAGE] subscriptions [onNotification / onError / onOpenEditor / onCloseEditor]
+	// TODO [STAGE] Connect
     let connectionInfo = {
         port: 3000
     };
@@ -33,17 +44,14 @@ export function activate(context: vscode.ExtensionContext) {
         };
         return Promise.resolve(result);
     };
-    
     let clientOptions: LanguageClientOptions = {
         documentSelector: ['gcl'],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.gcl')
         }
     };
-    
     // Create the language client and start the client.
     client = new LanguageClient('GCL Simplified Server', serverOptions, clientOptions);
-
     //client.setTrace(Trace.Verbose);
     client.start();
 
@@ -51,22 +59,23 @@ export function activate(context: vscode.ExtensionContext) {
 	//client.sendNotification();
 	vscode.window.showInformationMessage(client.state.toString());
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	// console.log('Congratulations, your extension "gb-mode" is now active!');
+	// TOOD [JEFF][DEBUG] find out .ts linkage
+	// var res = connection$Guabao.start();
+	// console.log(res);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('gb-mode.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
+	// TODO [STAGE] subscriptions [onActivateExtension (VIEW) / onDeactivateExtension]
+	const panel = vscode.window.createWebviewPanel("RHS", "GauBao RHS Panel", vscode.ViewColumn.Two);
+
+	// TODO [STAGE] subscriptions [onChangeCursorPosition]
+	// TODO [STAGE] subscriptions [onChangeTextDocument]
+
+	// TODO [STAGE] registerCommand [refine / restart / stop / start / debug ]
+
+	// REMOVE_BEFORE_DEPLOY Sandbox
+	regCommand('gb-mode.helloWorld', () => {
 		vscode.window.showInformationMessage('gb-mode for guarded command language GuaBao ;)');
 	});
-
-	let disposable2 = vscode.commands.registerCommand('gb-mode.showFileName', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
+	regCommand('gb-mode.showFileName', () => {
 		const suffixIsValid = vscode.workspace.textDocuments[0].fileName.endsWith('.gcl');
 		if (suffixIsValid) {
 			vscode.window.showInformationMessage(vscode.workspace.textDocuments[0].fileName);
@@ -76,11 +85,11 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {
 	// TODO handle !client
 	return client.stop();
+	// TODO list of clean ups before exiting
+	// e.g. clean up called Solvers in case of in progress solving
 }

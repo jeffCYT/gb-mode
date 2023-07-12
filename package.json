@@ -14,6 +14,22 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "GuaBao",
+      "properties": {
+        "guabao.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Testing for contributes.configuration bool"
+        },
+        "guabao.solver": {
+          "type": "string",
+          "enum": ["z3", "CVC4"],
+          "default": "z3",
+          "description": "TODO currently a mock setting for backend solver"
+        }
+      }
+    },
     "languages": [
       {
         "id": "guabao",
